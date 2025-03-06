@@ -1,0 +1,112 @@
+{
+  "questions": [
+    {
+      "id": "product_description",
+      "type": "text",
+      "question": "Describe your product in a few sentences. What problem does it solve?",
+      "placeholder": "e.g., Our product is a team collaboration tool that helps remote teams stay organized and communicate effectively."
+    },
+    {
+      "id": "user_endgame",
+      "type": "text",
+      "question": "What is the ultimate 'user endgame' for your product? What success looks like for your users?",
+      "placeholder": "e.g., Teams can complete projects efficiently with clear communication and no missed deadlines."
+    },
+    {
+      "id": "beginner_challenges",
+      "type": "text",
+      "question": "What are the top 3 challenges new users face when starting with your product?",
+      "placeholder": "e.g., Setting up the workspace, inviting team members, creating their first project."
+    },
+    {
+      "id": "intermediate_challenges",
+      "type": "text",
+      "question": "What challenges do users face once they've mastered the basics?",
+      "placeholder": "e.g., Managing multiple projects, customizing workflows, integrating with other tools."
+    },
+    {
+      "id": "advanced_challenges",
+      "type": "text",
+      "question": "What advanced challenges do your most experienced users encounter?",
+      "placeholder": "e.g., Enterprise-level permissions, complex reporting needs, scaling to hundreds of users."
+    },
+    {
+      "id": "current_free_model",
+      "type": "select",
+      "question": "What type of free model are you currently using?",
+      "options": [
+        "Opt-In Free Trial",
+        "Opt-Out Free Trial",
+        "Usage-Based Free Trial",
+        "Freemium",
+        "None (No free offering)"
+      ]
+    },
+    {
+      "id": "free_features",
+      "type": "text",
+      "question": "What features are currently available in your free offering?",
+      "placeholder": "e.g., Up to 3 projects, basic reporting, 5 team members."
+    },
+    {
+      "id": "free_limitations",
+      "type": "text",
+      "question": "What are the main limitations of your free model?",
+      "placeholder": "e.g., Limited storage, no advanced features, restrictions on team size."
+    },
+    {
+      "id": "conversion_rate",
+      "type": "select",
+      "question": "What's your current free-to-paid conversion rate?",
+      "options": [
+        "Less than 1%",
+        "1-3%",
+        "3-5%",
+        "5-10%",
+        "More than 10%",
+        "I don't know/Not applicable"
+      ]
+    },
+    {
+      "id": "time_to_value",
+      "type": "select",
+      "question": "How quickly can new users experience value with your product?",
+      "options": [
+        "Immediately (under 5 minutes)",
+        "Quick (5-30 minutes)",
+        "Moderate (30 minutes - 2 hours)",
+        "Slow (several hours)",
+        "Very slow (days or weeks)"
+      ]
+    },
+    {
+      "id": "key_metrics",
+      "type": "text",
+      "question": "What key metrics do you track to measure the success of your free model?",
+      "placeholder": "e.g., Trial signups, activation rate, free-to-paid conversion rate, time to convert."
+    },
+    {
+      "id": "intentional_rating",
+      "type": "range",
+      "question": "On a scale of 1 to 10, how intentional do you feel your current free model is?",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "main_goals",
+      "type": "multiselect",
+      "question": "What are your main goals for your free model? (Select up to 3)",
+      "options": [
+        "Increase user acquisition",
+        "Improve conversion rates",
+        "Reduce customer acquisition costs",
+        "Build brand awareness",
+        "Gather more user feedback",
+        "Compete more effectively",
+        "Expand to new markets",
+        "Increase product usage"
+      ],
+      "max_selections": 3
+    }
+  ]
+} 
