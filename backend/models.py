@@ -11,6 +11,18 @@ user_projects = Table(
     Column("project_id", Integer, ForeignKey("projects.id"))
 )
 
+class QuizQuestion(Base):
+    __tablename__ = "quiz_questions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(Text, nullable=False)  # Question text
+    category = Column(String, index=True)  # desirable, effective, efficient, polished
+    options = Column(JSON, nullable=True)  # Optional predefined options
+    order = Column(Integer, default=0)  # Display order
+    required = Column(Boolean, default=True)  # Whether the question is required
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
 class User(Base):
     __tablename__ = "users"
     
@@ -91,6 +103,18 @@ class QuizResult(Base):
     user = relationship("User", back_populates="quiz_results")
     project = relationship("Project", back_populates="quiz_results")
     
+class SharedAnalysis(Base):
+    """Shared analysis model for public/sharable links"""
+    __tablename__ = "shared_analyses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    share_id = Column(String, unique=True, index=True)  # Public UUID for sharing
+    form_data = Column(JSON, nullable=False)  # The input form data
+    analysis = Column(JSON, nullable=False)  # Analysis results
+    recommendations = Column(JSON, nullable=False)  # Recommendations
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    views = Column(Integer, default=0)  # Track number of views
+
 class ChatSession(Base):
     __tablename__ = "chat_sessions"
     

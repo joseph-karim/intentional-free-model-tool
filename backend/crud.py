@@ -1,17 +1,18 @@
 from sqlalchemy.orm import Session
-import models
-import schemas
-from typing import List, Dict, Optional, Any
+from typing import Dict, Any, List, Optional
+
+from models import QuizQuestion, QuizResult, User, Project, SharedAnalysis
+from schemas import QuizSubmission
 import datetime
 
 # User operations
 def get_user_by_id(db: Session, user_id: str):
     """Get a user by their ID (Auth0 ID)"""
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db.query(User).filter(User.id == user_id).first()
 
 def create_user(db: Session, user: schemas.UserCreate):
     """Create a new user"""
-    db_user = models.User(
+    db_user = User(
         id=user.id,
         email=user.email,
         name=user.name
@@ -30,7 +31,7 @@ def create_project(db: Session, project: schemas.ProjectCreate, user_id: str):
         return None
     
     # Create the project
-    db_project = models.Project(
+    db_project = Project(
         name=project.name,
         description=project.description
     )
@@ -46,7 +47,7 @@ def create_project(db: Session, project: schemas.ProjectCreate, user_id: str):
 
 def get_project(db: Session, project_id: int):
     """Get a project by ID"""
-    return db.query(models.Project).filter(models.Project.id == project_id).first()
+    return db.query(Project).filter(Project.id == project_id).first()
 
 def get_user_projects(db: Session, user_id: str, skip: int = 0, limit: int = 100):
     """Get all projects for a user"""
@@ -56,54 +57,36 @@ def get_user_projects(db: Session, user_id: str, skip: int = 0, limit: int = 100
     return user.projects[skip:skip+limit]
 
 # Quiz result operations
-def create_quiz_result(db: Session, quiz_result: schemas.QuizResultCreate, user_id: str, project_id: Optional[int] = None):
-    """Create a new quiz result"""
-    db_quiz_result = models.QuizResult(
-        user_id=user_id,
-        project_id=project_id,
+def create_quiz_result(db: Session, submission: QuizSubmission, scores: Dict[str, float], feedback: Dict[str, str]) -> int:
+    """
+    Create a new quiz result in the database.
+    
+    Args:
+        db: Database session
+        submission: Quiz submission data
+        scores: Scores for each dimension
+        feedback: Feedback for each dimension
         
-        # Context information
-        product_description=quiz_result.product_description,
-        target_audience=quiz_result.target_audience,
-        business_goals=quiz_result.business_goals,
-        
-        # User journey information
-        user_endgame=quiz_result.user_endgame,
-        beginner_stage=quiz_result.beginner_stage,
-        intermediate_stage=quiz_result.intermediate_stage,
-        advanced_stage=quiz_result.advanced_stage,
-        key_challenges=quiz_result.key_challenges,
-        
-        # Current model assessment
-        current_model=quiz_result.current_model,
-        current_metrics=quiz_result.current_metrics,
-        
-        # DEEP framework inputs
-        quiz_answers=quiz_result.quiz_answers,
-        desirable_inputs=quiz_result.desirable_inputs,
-        effective_inputs=quiz_result.effective_inputs,
-        efficient_inputs=quiz_result.efficient_inputs,
-        polished_inputs=quiz_result.polished_inputs,
-        
-        # Analysis results
-        analysis_result=quiz_result.analysis_result,
-        recommendations=quiz_result.recommendations,
-        implementation_plan=quiz_result.implementation_plan,
-        
-        # Scores
-        overall_score=quiz_result.overall_score,
-        desirable_score=quiz_result.desirable_score,
-        effective_score=quiz_result.effective_score,
-        efficient_score=quiz_result.efficient_score,
-        polished_score=quiz_result.polished_score,
-        
-        # Recommendations
-        recommended_model=quiz_result.recommended_model
+    Returns:
+        ID of the created quiz result
+    """
+    # Create a new quiz result
+    db_result = QuizResult(
+        quiz_answers=submission.dict(),
+        overall_score=scores.get('overall', 0),
+        desirable_score=scores.get('desirable', 0),
+        effective_score=scores.get('effective', 0),
+        efficient_score=scores.get('efficient', 0),
+        polished_score=scores.get('polished', 0),
+        recommendations=str(feedback)
     )
-    db.add(db_quiz_result)
+    
+    # Add to database
+    db.add(db_result)
     db.commit()
-    db.refresh(db_quiz_result)
-    return db_quiz_result
+    db.refresh(db_result)
+    
+    return db_result.id
 
 def create_quiz_result_with_task_id(db: Session, quiz_result: schemas.QuizResultCreate, user_id: str, task_id: str, project_id: Optional[int] = None):
     """Create a new quiz result with a task ID for background processing tracking"""
@@ -120,7 +103,7 @@ def create_quiz_result_with_task_id(db: Session, quiz_result: schemas.QuizResult
 
 def get_quiz_result(db: Session, quiz_result_id: int):
     """Get a quiz result by ID"""
-    return db.query(models.QuizResult).filter(models.QuizResult.id == quiz_result_id).first()
+    return db.query(QuizResult).filter(QuizResult.id == quiz_result_id).first()
 
 def get_quiz_result_by_task_id(db: Session, task_id: str):
     """Get a quiz result by task ID (for background processing)"""
@@ -131,24 +114,24 @@ def get_quiz_result_by_task_id(db: Session, task_id: str):
     # or Redis for the associated quiz result ID
     
     # Return the most recent result for now (this is just for demo purposes)
-    return db.query(models.QuizResult).order_by(models.QuizResult.created_at.desc()).first()
+    return db.query(QuizResult).order_by(QuizResult.created_at.desc()).first()
 
 def get_user_quiz_results(db: Session, user_id: str, skip: int = 0, limit: int = 100):
     """Get all quiz results for a user"""
-    return db.query(models.QuizResult).filter(
-        models.QuizResult.user_id == user_id
-    ).order_by(models.QuizResult.created_at.desc()).offset(skip).limit(limit).all()
+    return db.query(QuizResult).filter(
+        QuizResult.user_id == user_id
+    ).order_by(QuizResult.created_at.desc()).offset(skip).limit(limit).all()
 
 def get_project_quiz_results(db: Session, project_id: int, skip: int = 0, limit: int = 100):
     """Get all quiz results for a project"""
-    return db.query(models.QuizResult).filter(
-        models.QuizResult.project_id == project_id
-    ).order_by(models.QuizResult.created_at.desc()).offset(skip).limit(limit).all()
+    return db.query(QuizResult).filter(
+        QuizResult.project_id == project_id
+    ).order_by(QuizResult.created_at.desc()).offset(skip).limit(limit).all()
 
 # Chat operations
 def create_chat_session(db: Session, user_id: str, quiz_result_id: Optional[int] = None):
     """Create a new chat session"""
-    db_session = models.ChatSession(
+    db_session = ChatSession(
         user_id=user_id,
         quiz_result_id=quiz_result_id
     )
@@ -159,17 +142,17 @@ def create_chat_session(db: Session, user_id: str, quiz_result_id: Optional[int]
 
 def get_chat_session(db: Session, session_id: int):
     """Get a chat session by ID"""
-    return db.query(models.ChatSession).filter(models.ChatSession.id == session_id).first()
+    return db.query(ChatSession).filter(ChatSession.id == session_id).first()
 
 def get_user_chat_sessions(db: Session, user_id: str, skip: int = 0, limit: int = 100):
     """Get all chat sessions for a user"""
-    return db.query(models.ChatSession).filter(
-        models.ChatSession.user_id == user_id
-    ).order_by(models.ChatSession.updated_at.desc()).offset(skip).limit(limit).all()
+    return db.query(ChatSession).filter(
+        ChatSession.user_id == user_id
+    ).order_by(ChatSession.updated_at.desc()).offset(skip).limit(limit).all()
 
 def create_chat_message(db: Session, session_id: int, user_message: str, assistant_message: str, context: Optional[Dict[str, Any]] = None):
     """Create a new chat message in a session"""
-    db_message = models.ChatMessage(
+    db_message = ChatMessage(
         session_id=session_id,
         user_message=user_message,
         assistant_message=assistant_message,
@@ -187,6 +170,102 @@ def create_chat_message(db: Session, session_id: int, user_message: str, assista
 
 def get_chat_messages(db: Session, session_id: int, skip: int = 0, limit: int = 100):
     """Get all messages in a chat session"""
-    return db.query(models.ChatMessage).filter(
-        models.ChatMessage.session_id == session_id
-    ).order_by(models.ChatMessage.created_at.asc()).offset(skip).limit(limit).all() 
+    return db.query(ChatMessage).filter(
+        ChatMessage.session_id == session_id
+    ).order_by(ChatMessage.created_at.asc()).offset(skip).limit(limit).all()
+
+def get_quiz_questions(db: Session, skip: int = 0, limit: int = 100) -> List[QuizQuestion]:
+    """
+    Get all quiz questions from the database.
+    
+    Args:
+        db: Database session
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        
+    Returns:
+        List of quiz questions
+    """
+    return db.query(QuizQuestion).offset(skip).limit(limit).all()
+
+def get_quiz_question(db: Session, question_id: int) -> Optional[QuizQuestion]:
+    """
+    Get a quiz question by ID.
+    
+    Args:
+        db: Database session
+        question_id: ID of the question to get
+        
+    Returns:
+        Quiz question or None if not found
+    """
+    return db.query(QuizQuestion).filter(QuizQuestion.id == question_id).first()
+
+def create_quiz_question(db: Session, question: Dict[str, Any]) -> QuizQuestion:
+    """
+    Create a new quiz question in the database.
+    
+    Args:
+        db: Database session
+        question: Question data
+        
+    Returns:
+        Created quiz question
+    """
+    db_question = QuizQuestion(**question)
+    db.add(db_question)
+    db.commit()
+    db.refresh(db_question)
+    return db_question
+
+def create_shared_analysis(
+    db: Session, 
+    share_id: str, 
+    form_data: Dict[str, Any], 
+    analysis: Dict[str, Any], 
+    recommendations: List[Dict[str, Any]]
+) -> SharedAnalysis:
+    """
+    Create a new shared analysis in the database.
+    
+    Args:
+        db: Database session
+        share_id: Unique ID for sharing
+        form_data: Form data submitted by the user
+        analysis: Analysis results
+        recommendations: Recommendations based on analysis
+        
+    Returns:
+        Created shared analysis
+    """
+    db_shared_analysis = SharedAnalysis(
+        share_id=share_id,
+        form_data=form_data,
+        analysis=analysis,
+        recommendations=recommendations
+    )
+    
+    db.add(db_shared_analysis)
+    db.commit()
+    db.refresh(db_shared_analysis)
+    return db_shared_analysis
+
+def get_shared_analysis_by_id(db: Session, share_id: str) -> Optional[SharedAnalysis]:
+    """
+    Get a shared analysis by its share ID.
+    
+    Args:
+        db: Database session
+        share_id: Unique ID for the shared analysis
+        
+    Returns:
+        Shared analysis or None if not found
+    """
+    shared_analysis = db.query(SharedAnalysis).filter(SharedAnalysis.share_id == share_id).first()
+    
+    if shared_analysis:
+        # Increment view count
+        shared_analysis.views += 1
+        db.commit()
+        
+    return shared_analysis 
