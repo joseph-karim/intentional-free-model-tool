@@ -122,6 +122,7 @@ class AnalysisResponse(BaseModel):
     """Response for analysis request"""
     analysis: Analysis
     recommendations: List[Recommendation]
+    form_data: Optional[Dict[str, Any]] = None
     success: bool
 
 # User schemas
@@ -324,6 +325,7 @@ class AnalysisResponse(BaseModel):
     """Response for analysis request"""
     analysis: Analysis
     recommendations: List[Recommendation]
+    form_data: Optional[Dict[str, Any]] = None
     success: bool
 
 # Database models
@@ -380,6 +382,7 @@ class SharedAnalysisView(BaseModel):
     form_data: Dict[str, Any]
     analysis: Any
     recommendations: List[Any]
+    pricing_strategy: Optional[Dict[str, Any]] = None
     created_at: datetime.datetime
     views: int
     

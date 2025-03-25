@@ -34,9 +34,13 @@ async def analyze_model(
         # Generate recommendations based on analysis
         recommendations = generate_recommendations(analysis_result)
         
+        # Extract the form data
+        form_data = request.form_data.dict() if hasattr(request.form_data, 'dict') else request.form_data
+        
         return {
             "analysis": analysis_result,
             "recommendations": recommendations,
+            "form_data": form_data,
             "success": True
         }
     except Exception as e:
@@ -68,11 +72,19 @@ async def create_shared_analysis_link(
         # Generate unique ID for sharing
         share_id = str(uuid.uuid4())
         
+        # Ensure the pricing strategy is part of the form data
+        form_data = request.form_data
+        pricing_strategy = None
+        if form_data and hasattr(form_data, 'modelType') and form_data.modelType:
+            model_type = form_data.modelType
+            if hasattr(model_type, 'pricingStrategy'):
+                pricing_strategy = model_type.pricingStrategy
+        
         # Store in database
         create_shared_analysis(
             db=db,
             share_id=share_id,
-            form_data=request.form_data,
+            form_data=request.form_data.dict() if hasattr(request.form_data, 'dict') else request.form_data,
             analysis=analysis_result,
             recommendations=recommendations
         )
@@ -107,10 +119,18 @@ async def get_shared_analysis(
                 detail="Shared analysis not found"
             )
         
+        # Ensure pricing strategy is included in the form data
+        form_data = shared_analysis.form_data
+        if shared_analysis.pricing_strategy and form_data and isinstance(form_data, dict):
+            model_type = form_data.get('modelType', {})
+            if isinstance(model_type, dict) and not model_type.get('pricingStrategy'):
+                model_type['pricingStrategy'] = shared_analysis.pricing_strategy
+                form_data['modelType'] = model_type
+        
         return {
             "analysis": shared_analysis.analysis,
             "recommendations": shared_analysis.recommendations,
-            "form_data": shared_analysis.form_data,
+            "form_data": form_data,
             "success": True
         }
     except HTTPException:

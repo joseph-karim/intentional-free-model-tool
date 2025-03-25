@@ -37,6 +37,12 @@ const ResultsPage = () => {
           const sharedData = await apiService.getSharedAnalysis(params.shareId);
           setAnalysis(sharedData.analysis);
           setRecommendations(sharedData.recommendations);
+          
+          // Save the form data to session storage
+          if (sharedData.form_data) {
+            sessionStorage.setItem('formData', JSON.stringify(sharedData.form_data));
+          }
+          
           setIsSharedView(true);
           setLoading(false);
           return;
@@ -46,6 +52,12 @@ const ResultsPage = () => {
         if (location.state?.analysis) {
           setAnalysis(location.state.analysis.analysis);
           setRecommendations(location.state.analysis.recommendations);
+          
+          // Save form data to session storage if available
+          if (location.state.analysis.form_data) {
+            sessionStorage.setItem('formData', JSON.stringify(location.state.analysis.form_data));
+          }
+          
           setLoading(false);
           return;
         }
@@ -78,12 +90,18 @@ const ResultsPage = () => {
   // Save analysis to session storage when it changes
   useEffect(() => {
     if (analysis && recommendations && !isSharedView) {
+      // Save analysis and recommendations
       sessionStorage.setItem('analysis', JSON.stringify({ 
         analysis, 
         recommendations 
       }));
+      
+      // Save form data if it exists in location state
+      if (location.state?.analysis?.form_data) {
+        sessionStorage.setItem('formData', JSON.stringify(location.state.analysis.form_data));
+      }
     }
-  }, [analysis, recommendations, isSharedView]);
+  }, [analysis, recommendations, isSharedView, location.state]);
   
   // Handle tab change
   const handleTabChange = (tab) => {

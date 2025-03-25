@@ -112,6 +112,7 @@ class SharedAnalysis(Base):
     form_data = Column(JSON, nullable=False)  # The input form data
     analysis = Column(JSON, nullable=False)  # Analysis results
     recommendations = Column(JSON, nullable=False)  # Recommendations
+    pricing_strategy = Column(JSON, nullable=True)  # Pricing strategy data
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     views = Column(Integer, default=0)  # Track number of views
 

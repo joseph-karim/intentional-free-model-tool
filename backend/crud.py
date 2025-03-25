@@ -238,11 +238,19 @@ def create_shared_analysis(
     Returns:
         Created shared analysis
     """
+    # Extract pricing strategy from form data
+    pricing_strategy = None
+    if form_data and isinstance(form_data, dict):
+        model_type = form_data.get('modelType', {})
+        if isinstance(model_type, dict):
+            pricing_strategy = model_type.get('pricingStrategy')
+    
     db_shared_analysis = SharedAnalysis(
         share_id=share_id,
         form_data=form_data,
         analysis=analysis,
-        recommendations=recommendations
+        recommendations=recommendations,
+        pricing_strategy=pricing_strategy
     )
     
     db.add(db_shared_analysis)
